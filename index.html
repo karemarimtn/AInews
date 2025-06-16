@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube AI動画ファインダー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">🚀 YouTube AI動画ファインダー</h1>
+            <p class="text-gray-600">お気に入りのチャンネルからAI関連の新着動画をチェック！</p>
+        </header>
+
+        <!-- 設定フォーム -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <div class="space-y-4">
+                <div>
+                    <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-1">YouTube APIキー</label>
+                    <input type="password" id="apiKey" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="APIキーを入力してください">
+                </div>
+                <div>
+                    <label for="channelIds" class="block text-sm font-medium text-gray-700 mb-1">チャンネルID (カンマ区切り)</label>
+                    <textarea id="channelIds" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="チェックしたいチャンネルのIDを入力...">UC59s3JgL0P234d-6sD-0gHw,UCfapRkagDtoQEkGeyD3uERQ,UC4hA3n5aPnditVnUGpI-1jA</textarea>
+                </div>
+                <div>
+                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">検索キーワード</label>
+                    <input type="text" id="keyword" value="AI" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="例: AI, 人工知能, ChatGPT">
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="searchButton" class="btn-primary font-bold py-3 px-8 rounded-full shadow-lg text-lg w-full sm:w-auto">
+                    動画を検索
+                </button>
+            </div>
+        </div>
+        
+        <!-- メッセージ表示エリア -->
+        <div id="message" class="text-center mb-4"></div>
+
+        <!-- ローディングスピナー -->
+        <div id="loader" class="hidden mx-auto my-8">
+            <div class="loader"></div>
+            <p class="text-center text-gray-600 mt-2">検索中...</p>
+        </div>
+
+        <!-- 結果表示エリア -->
+        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- ここに動画カードが挿入されます -->
+        </div>
+
+    </div>
+
+    <script>
+        // DOM要素の取得
+        const apiKeyInput = document.getElementById('apiKey');
+        const channelIdsInput = document.getElementById('channelIds');
+        const keywordInput = document.getElementById('keyword');
+        const searchButton = document.getElementById('searchButton');
+        const resultsContainer = document.getElementById('results');
+        const loader = document.getElementById('loader');
+        const messageContainer = document.getElementById('message');
+
+        // 検索ボタンのクリックイベント
+        searchButton.addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value.trim();
+            const channelIds = channelIdsInput.value.trim().split(',').map(id => id.trim()).filter(id => id);
+            const keyword = keywordInput.value.trim();
+
+            // 入力チェック
+            if (!apiKey) {
+                displayMessage('APIキーを入力してください。', 'error');
+                return;
+            }
+            if (channelIds.length === 0) {
+                displayMessage('チャンネルIDを1つ以上入力してください。', 'error');
+                return;
+            }
+            if (!keyword) {
+                displayMessage('検索キーワードを入力してください。', 'error');
+                return;
+            }
+
+            // 検索処理の開始
+            resultsContainer.innerHTML = '';
+            messageContainer.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            try {
+                // 各チャンネルIDに対して並列で動画を検索
+                const searchPromises = channelIds.map(channelId => fetchVideos(apiKey, channelId, keyword));
+                const videoArrays = await Promise.all(searchPromises);
+                
+                // 結果をフラットにして日付でソート
+                const allVideos = videoArrays.flat().sort((a, b) => new Date(b.snippet.publishTime) - new Date(a.snippet.publishTime));
+
+                loader.classList.add('hidden');
+
+                if (allVideos.length > 0) {
+                    displayVideos(allVideos);
+                } else {
+                    displayMessage('該当する動画が見つかりませんでした。', 'info');
+                }
+
+            } catch (error) {
+                console.error('エラーが発生しました:', error);
+                loader.classList.add('hidden');
+                displayMessage(`エラーが発生しました: ${error.message}`, 'error');
+            }
+        });
+
+        // YouTube APIから動画を検索する関数
+        async function fetchVideos(apiKey, channelId, keyword) {
+            const url = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&q=${keyword}&part=snippet&order=date&type=video&maxResults=10`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            return data.items || [];
+        }
+
+        // 動画を画面に表示する関数
+        function displayVideos(videos) {
+            resultsContainer.innerHTML = videos.map(video => createVideoCard(video)).join('');
+        }
+
+        // 動画カードのHTMLを生成する関数
+        function createVideoCard(video) {
+            const videoId = video.id.videoId;
+            const title = video.snippet.title;
+            const thumbnailUrl = video.snippet.thumbnails.high.url;
+            const channelTitle = video.snippet.channelTitle;
+            const publishDate = new Date(video.snippet.publishTime).toLocaleDateString('ja-JP');
+
+            return `
+                <div class="card flex flex-col">
+                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">
+                        <img src="${thumbnailUrl}" alt="${title}" class="w-full h-40 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e2e8f0/4a5568?text=Image+Not+Found';">
+                    </a>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="font-bold text-md mb-2 flex-grow">
+                            <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 transition-colors">
+                                ${title}
+                            </a>
+                        </h3>
+                        <div class="text-sm text-gray-600 mt-2">
+                            <p>${channelTitle}</p>
+                            <p>${publishDate}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // メッセージを表示する関数
+        function displayMessage(message, type = 'info') {
+            const colorClass = type === 'error' ? 'text-red-500' : 'text-gray-600';
+            messageContainer.innerHTML = `<p class="${colorClass} font-semibold">${message}</p>`;
+        }
+    </script>
+</body>
+</html>

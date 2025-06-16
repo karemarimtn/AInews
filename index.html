@@ -4,203 +4,536 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube AI動画ファインダー</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .card {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
             overflow: hidden;
         }
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        }
-        .btn-primary {
-            background: linear-gradient(to right, #4f46e5, #7c3aed);
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
             color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-section {
+            padding: 40px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
             transition: all 0.3s ease;
+            background: white;
         }
-        .btn-primary:hover {
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4f46e5;
-            border-radius: 50%;
+
+        .help-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+            padding-left: 5px;
+        }
+
+        .help-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
             width: 40px;
             height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .results {
+            padding: 40px;
+        }
+
+        .results-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .results-count {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .video-card:hover .video-thumbnail img {
+            transform: scale(1.05);
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-card:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 15px solid #ff6b6b;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            margin-left: 3px;
+        }
+
+        .video-info {
+            padding: 20px;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .video-date {
+            opacity: 0.8;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #ffcccb;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-section, .results {
+                padding: 20px;
+            }
+            
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">🚀 YouTube AI動画ファインダー</h1>
-            <p class="text-gray-600">お気に入りのチャンネルからAI関連の新着動画をチェック！</p>
-        </header>
-
-        <!-- 設定フォーム -->
-        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-            <div class="space-y-4">
-                <div>
-                    <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-1">YouTube APIキー</label>
-                    <input type="password" id="apiKey" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="APIキーを入力してください">
-                </div>
-                <div>
-                    <label for="channelIds" class="block text-sm font-medium text-gray-700 mb-1">チャンネルID (カンマ区切り)</label>
-                    <textarea id="channelIds" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="チェックしたいチャンネルのIDを入力...">UC59s3JgL0P234d-6sD-0gHw,UCfapRkagDtoQEkGeyD3uERQ,UC4hA3n5aPnditVnUGpI-1jA</textarea>
-                </div>
-                <div>
-                    <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">検索キーワード</label>
-                    <input type="text" id="keyword" value="AI" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="例: AI, 人工知能, ChatGPT">
-                </div>
-            </div>
-            <div class="mt-6 text-center">
-                <button id="searchButton" class="btn-primary font-bold py-3 px-8 rounded-full shadow-lg text-lg w-full sm:w-auto">
-                    動画を検索
-                </button>
-            </div>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 YouTube AI動画ファインダー</h1>
+            <p>指定したチャンネルから特定のキーワードを含む動画を検索</p>
         </div>
         
-        <!-- メッセージ表示エリア -->
-        <div id="message" class="text-center mb-4"></div>
-
-        <!-- ローディングスピナー -->
-        <div id="loader" class="hidden mx-auto my-8">
-            <div class="loader"></div>
-            <p class="text-center text-gray-600 mt-2">検索中...</p>
+        <div class="search-section">
+            <div class="form-group">
+                <label for="channelId">YouTubeチャンネルID</label>
+                <div class="input-wrapper">
+                    <input type="text" id="channelId" class="form-control" 
+                           placeholder="例: UCxxxxxxxxxxxxxxxxxxxxxx"
+                           value="">
+                </div>
+                <div class="help-text">
+                    チャンネルIDの確認方法: YouTubeチャンネル → 「概要」タブ → 「統計情報を表示」→ チャンネルIDをコピー<br>
+                    または<a href="https://www.youtube.com/@channel_name" target="_blank">チャンネルURL</a>の@以降の部分
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="keyword">検索キーワード</label>
+                <input type="text" id="keyword" class="form-control" 
+                       placeholder="例: AI, 人工知能, ChatGPT"
+                       value="AI">
+            </div>
+            
+            <div class="form-group">
+                <label for="maxResults">最大取得件数</label>
+                <select id="maxResults" class="form-control">
+                    <option value="10">10件</option>
+                    <option value="25" selected>25件</option>
+                    <option value="50">50件</option>
+                </select>
+            </div>
+            
+            <button class="search-btn" onclick="searchVideos()">
+                🔍 動画を検索
+            </button>
         </div>
-
-        <!-- 結果表示エリア -->
-        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- ここに動画カードが挿入されます -->
+        
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>動画を検索中...</p>
         </div>
-
+        
+        <div id="results" class="results" style="display: none;">
+            <div class="results-header">
+                <div id="resultsCount" class="results-count"></div>
+            </div>
+            <div id="videoGrid" class="video-grid"></div>
+        </div>
+        
+        <div id="noResults" class="no-results" style="display: none;">
+            <div class="no-results-icon">📭</div>
+            <h3>該当する動画が見つかりませんでした</h3>
+            <p>別のキーワードやチャンネルIDで検索してみてください</p>
+        </div>
     </div>
 
     <script>
-        // DOM要素の取得
-        const apiKeyInput = document.getElementById('apiKey');
-        const channelIdsInput = document.getElementById('channelIds');
-        const keywordInput = document.getElementById('keyword');
-        const searchButton = document.getElementById('searchButton');
-        const resultsContainer = document.getElementById('results');
-        const loader = document.getElementById('loader');
-        const messageContainer = document.getElementById('message');
+        const API_KEY = 'AIzaSyCCHRKGJi8aHUu6x_2RJNGa07w1BNJTk-U';
+        let allVideos = [];
 
-        // 検索ボタンのクリックイベント
-        searchButton.addEventListener('click', async () => {
-            const apiKey = apiKeyInput.value.trim();
-            const channelIds = channelIdsInput.value.trim().split(',').map(id => id.trim()).filter(id => id);
-            const keyword = keywordInput.value.trim();
-
-            // 入力チェック
-            if (!apiKey) {
-                displayMessage('APIキーを入力してください。', 'error');
+        async function searchVideos() {
+            const channelId = document.getElementById('channelId').value.trim();
+            const keyword = document.getElementById('keyword').value.trim();
+            const maxResults = document.getElementById('maxResults').value;
+            
+            if (!channelId) {
+                alert('チャンネルIDを入力してください');
                 return;
             }
-            if (channelIds.length === 0) {
-                displayMessage('チャンネルIDを1つ以上入力してください。', 'error');
-                return;
-            }
+            
             if (!keyword) {
-                displayMessage('検索キーワードを入力してください。', 'error');
+                alert('検索キーワードを入力してください');
                 return;
             }
-
-            // 検索処理の開始
-            resultsContainer.innerHTML = '';
-            messageContainer.innerHTML = '';
-            loader.classList.remove('hidden');
-
+            
+            showLoading();
+            hideResults();
+            
             try {
-                // 各チャンネルIDに対して並列で動画を検索
-                const searchPromises = channelIds.map(channelId => fetchVideos(apiKey, channelId, keyword));
-                const videoArrays = await Promise.all(searchPromises);
-                
-                // 結果をフラットにして日付でソート
-                const allVideos = videoArrays.flat().sort((a, b) => new Date(b.snippet.publishTime) - new Date(a.snippet.publishTime));
-
-                loader.classList.add('hidden');
-
-                if (allVideos.length > 0) {
-                    displayVideos(allVideos);
-                } else {
-                    displayMessage('該当する動画が見つかりませんでした。', 'info');
+                // チャンネルIDがユーザーハンドル形式(@username)の場合の処理
+                let finalChannelId = channelId;
+                if (channelId.startsWith('@')) {
+                    finalChannelId = await getChannelIdFromHandle(channelId);
                 }
-
+                
+                const videos = await fetchChannelVideos(finalChannelId, maxResults);
+                const filteredVideos = filterVideosByKeyword(videos, keyword);
+                
+                allVideos = filteredVideos;
+                displayResults(filteredVideos, keyword);
+                
             } catch (error) {
-                console.error('エラーが発生しました:', error);
-                loader.classList.add('hidden');
-                displayMessage(`エラーが発生しました: ${error.message}`, 'error');
+                console.error('Error:', error);
+                showError('エラーが発生しました: ' + error.message);
+            } finally {
+                hideLoading();
             }
-        });
+        }
 
-        // YouTube APIから動画を検索する関数
-        async function fetchVideos(apiKey, channelId, keyword) {
-            const url = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&q=${keyword}&part=snippet&order=date&type=video&maxResults=10`;
+        async function getChannelIdFromHandle(handle) {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(handle)}&key=${API_KEY}`;
             const response = await fetch(url);
             const data = await response.json();
+            
+            if (data.items && data.items.length > 0) {
+                return data.items[0].snippet.channelId;
+            }
+            throw new Error('チャンネルが見つかりません');
+        }
 
+        async function fetchChannelVideos(channelId, maxResults) {
+            const url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet&order=date&type=video&maxResults=${maxResults}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`APIエラー: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
             if (data.error) {
                 throw new Error(data.error.message);
             }
-
+            
             return data.items || [];
         }
 
-        // 動画を画面に表示する関数
-        function displayVideos(videos) {
-            resultsContainer.innerHTML = videos.map(video => createVideoCard(video)).join('');
+        function filterVideosByKeyword(videos, keyword) {
+            const keywords = keyword.toLowerCase().split(',').map(k => k.trim());
+            
+            return videos.filter(video => {
+                const title = video.snippet.title.toLowerCase();
+                const description = video.snippet.description.toLowerCase();
+                
+                return keywords.some(k => 
+                    title.includes(k) || description.includes(k)
+                );
+            });
         }
 
-        // 動画カードのHTMLを生成する関数
-        function createVideoCard(video) {
-            const videoId = video.id.videoId;
-            const title = video.snippet.title;
-            const thumbnailUrl = video.snippet.thumbnails.high.url;
-            const channelTitle = video.snippet.channelTitle;
-            const publishDate = new Date(video.snippet.publishTime).toLocaleDateString('ja-JP');
-
-            return `
-                <div class="card flex flex-col">
-                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer">
-                        <img src="${thumbnailUrl}" alt="${title}" class="w-full h-40 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e2e8f0/4a5568?text=Image+Not+Found';">
-                    </a>
-                    <div class="p-4 flex flex-col flex-grow">
-                        <h3 class="font-bold text-md mb-2 flex-grow">
-                            <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 transition-colors">
-                                ${title}
-                            </a>
-                        </h3>
-                        <div class="text-sm text-gray-600 mt-2">
-                            <p>${channelTitle}</p>
-                            <p>${publishDate}</p>
+        function displayResults(videos, keyword) {
+            const resultsDiv = document.getElementById('results');
+            const videoGrid = document.getElementById('videoGrid');
+            const resultsCount = document.getElementById('resultsCount');
+            const noResults = document.getElementById('noResults');
+            
+            if (videos.length === 0) {
+                noResults.style.display = 'block';
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            resultsCount.textContent = `"${keyword}" に関連する動画 ${videos.length}件が見つかりました`;
+            
+            videoGrid.innerHTML = videos.map(video => {
+                const publishedDate = new Date(video.snippet.publishedAt).toLocaleDateString('ja-JP');
+                const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
+                const thumbnailUrl = video.snippet.thumbnails.medium.url;
+                
+                return `
+                    <div class="video-card" onclick="window.open('${videoUrl}', '_blank')">
+                        <div class="video-thumbnail">
+                            <img src="${thumbnailUrl}" alt="${video.snippet.title}">
+                            <div class="play-overlay">
+                                <div class="play-icon"></div>
+                            </div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">${video.snippet.title}</div>
+                            <div class="video-meta">
+                                <span class="video-date">${publishedDate}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }).join('');
+            
+            resultsDiv.style.display = 'block';
+            noResults.style.display = 'none';
         }
 
-        // メッセージを表示する関数
-        function displayMessage(message, type = 'info') {
-            const colorClass = type === 'error' ? 'text-red-500' : 'text-gray-600';
-            messageContainer.innerHTML = `<p class="${colorClass} font-semibold">${message}</p>`;
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
         }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+        }
+
+        function showError(message) {
+            const existingError = document.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            document.querySelector('.search-section').appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // エンターキーでの検索実行
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchVideos();
+            }
+        });
     </script>
 </body>
 </html>

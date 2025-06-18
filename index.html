@@ -84,6 +84,34 @@
             font-size: 1.1rem;
         }
 
+        .preset-channels {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.3);
+        }
+
+        .preset-btn.selected {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+
         .input-wrapper {
             position: relative;
         }
@@ -110,15 +138,6 @@
             color: #666;
             margin-top: 5px;
             padding-left: 5px;
-        }
-
-        .help-text a {
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        .help-text a:hover {
-            text-decoration: underline;
         }
 
         .search-btn {
@@ -194,6 +213,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
+            cursor: pointer;
         }
 
         .video-card:hover {
@@ -309,6 +329,10 @@
             .video-grid {
                 grid-template-columns: 1fr;
             }
+
+            .preset-channels {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -321,15 +345,31 @@
         
         <div class="search-section">
             <div class="form-group">
+                <label>おすすめチャンネル（クリックで選択）</label>
+                <div class="preset-channels">
+                    <button class="preset-btn" onclick="selectChannel('@ai_masaou', this)">AIまさお</button>
+                    <button class="preset-btn" onclick="selectChannel('@%E5%AE%89%E9%87%8E%E8%B2%B4%E5%8D%9A', this)">安野貴博</button>
+                    <button class="preset-btn" onclick="selectChannel('@rehacq', this)">rehacq</button>
+                    <button class="preset-btn" onclick="selectChannel('@taiki007', this)">taiki007</button>
+                    <button class="preset-btn" onclick="selectChannel('@s_nakajima', this)">s_nakajima</button>
+                    <button class="preset-btn" onclick="selectChannel('@kawagon-max', this)">kawagon-max</button>
+                    <button class="preset-btn" onclick="selectChannel('@mikimikiweb', this)">mikimikiweb</button>
+                    <button class="preset-btn" onclick="selectChannel('@GPTMaster-Kenjisan', this)">GPTMaster-Kenjisan</button>
+                    <button class="preset-btn" onclick="selectChannel('@chaen-ai-lab', this)">chaen-ai-lab</button>
+                    <button class="preset-btn" onclick="selectChannel('@airevolutionx', this)">airevolutionx</button>
+                    <button class="preset-btn" onclick="selectChannel('@pivot00', this)">pivot00</button>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="channelId">YouTubeチャンネルID</label>
                 <div class="input-wrapper">
                     <input type="text" id="channelId" class="form-control" 
-                           placeholder="例: UCxxxxxxxxxxxxxxxxxxxxxx"
-                           value="">
+                           placeholder="例: @username または UCxxxxxxxxxxxxxxxxxxxxxx"
+                           value="@ai_masaou">
                 </div>
                 <div class="help-text">
-                    チャンネルIDの確認方法: YouTubeチャンネル → 「概要」タブ → 「統計情報を表示」→ チャンネルIDをコピー<br>
-                    または<a href="https://www.youtube.com/@channel_name" target="_blank">チャンネルURL</a>の@以降の部分
+                    上のボタンから選択するか、直接入力してください
                 </div>
             </div>
             
@@ -369,13 +409,23 @@
         <div id="noResults" class="no-results" style="display: none;">
             <div class="no-results-icon">📭</div>
             <h3>該当する動画が見つかりませんでした</h3>
-            <p>別のキーワードやチャンネルIDで検索してみてください</p>
+            <p>別のキーワードやチャンネルで検索してみてください</p>
         </div>
     </div>
 
     <script>
         const API_KEY = 'AIzaSyCCHRKGJi8aHUu6x_2RJNGa07w1BNJTk-U';
         let allVideos = [];
+
+        function selectChannel(channelHandle, buttonElement) {
+            document.getElementById('channelId').value = channelHandle;
+            
+            // ボタンの選択状態を更新
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            buttonElement.classList.add('selected');
+        }
 
         async function searchVideos() {
             const channelId = document.getElementById('channelId').value.trim();
@@ -396,7 +446,6 @@
             hideResults();
             
             try {
-                // チャンネルIDがユーザーハンドル形式(@username)の場合の処理
                 let finalChannelId = channelId;
                 if (channelId.startsWith('@')) {
                     finalChannelId = await getChannelIdFromHandle(channelId);
@@ -527,6 +576,14 @@
                 errorDiv.remove();
             }, 5000);
         }
+
+        // 初期化時にデフォルトチャンネルを選択状態にする
+        window.addEventListener('load', function() {
+            const firstBtn = document.querySelector('.preset-btn');
+            if (firstBtn) {
+                firstBtn.classList.add('selected');
+            }
+        });
 
         // エンターキーでの検索実行
         document.addEventListener('keypress', function(e) {

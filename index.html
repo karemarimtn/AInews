@@ -91,25 +91,58 @@
             margin-bottom: 15px;
         }
 
-        .preset-btn {
+        .channel-checkbox {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .channel-checkbox:hover {
+            border-color: #74b9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.2);
+        }
+
+        .channel-checkbox.checked {
             background: linear-gradient(135deg, #74b9ff, #0984e3);
             color: white;
+            border-color: #0984e3;
+        }
+
+        .channel-checkbox input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .channel-checkbox label {
+            cursor: pointer;
+            font-weight: 500;
+            flex: 1;
+            margin: 0;
+        }
+
+        .select-all-btn {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 10px 20px;
             border-radius: 8px;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-align: left;
+            margin-bottom: 15px;
         }
 
-        .preset-btn:hover {
+        .select-all-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.3);
-        }
-
-        .preset-btn.selected {
-            background: linear-gradient(135deg, #00b894, #00a085);
+            box-shadow: 0 5px 15px rgba(162, 155, 254, 0.3);
         }
 
         .input-wrapper {
@@ -333,6 +366,10 @@
             .preset-channels {
                 grid-template-columns: 1fr;
             }
+
+            .channel-checkbox {
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -345,31 +382,65 @@
         
         <div class="search-section">
             <div class="form-group">
-                <label>おすすめチャンネル（クリックで選択）</label>
+                <label>おすすめチャンネル（複数選択可能）</label>
+                <button class="select-all-btn" onclick="toggleSelectAll()">全選択 / 全解除</button>
                 <div class="preset-channels">
-                    <button class="preset-btn" onclick="selectChannel('@ai_masaou', this)">AIまさお</button>
-                    <button class="preset-btn" onclick="selectChannel('@%E5%AE%89%E9%87%8E%E8%B2%B4%E5%8D%9A', this)">安野貴博</button>
-                    <button class="preset-btn" onclick="selectChannel('@rehacq', this)">rehacq</button>
-                    <button class="preset-btn" onclick="selectChannel('@taiki007', this)">taiki007</button>
-                    <button class="preset-btn" onclick="selectChannel('@s_nakajima', this)">s_nakajima</button>
-                    <button class="preset-btn" onclick="selectChannel('@kawagon-max', this)">kawagon-max</button>
-                    <button class="preset-btn" onclick="selectChannel('@mikimikiweb', this)">mikimikiweb</button>
-                    <button class="preset-btn" onclick="selectChannel('@GPTMaster-Kenjisan', this)">GPTMaster-Kenjisan</button>
-                    <button class="preset-btn" onclick="selectChannel('@chaen-ai-lab', this)">chaen-ai-lab</button>
-                    <button class="preset-btn" onclick="selectChannel('@airevolutionx', this)">airevolutionx</button>
-                    <button class="preset-btn" onclick="selectChannel('@pivot00', this)">pivot00</button>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch1" value="@ai_masaou" onchange="updateChannelList()">
+                        <label for="ch1">AIまさお</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch2" value="@%E5%AE%89%E9%87%8E%E8%B2%B4%E5%8D%9A" onchange="updateChannelList()">
+                        <label for="ch2">安野貴博</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch3" value="@rehacq" onchange="updateChannelList()">
+                        <label for="ch3">rehacq</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch4" value="@taiki007" onchange="updateChannelList()">
+                        <label for="ch4">taiki007</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch5" value="@s_nakajima" onchange="updateChannelList()">
+                        <label for="ch5">s_nakajima</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch6" value="@kawagon-max" onchange="updateChannelList()">
+                        <label for="ch6">kawagon-max</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch7" value="@mikimikiweb" onchange="updateChannelList()">
+                        <label for="ch7">mikimikiweb</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch8" value="@GPTMaster-Kenjisan" onchange="updateChannelList()">
+                        <label for="ch8">GPTMaster-Kenjisan</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch9" value="@chaen-ai-lab" onchange="updateChannelList()">
+                        <label for="ch9">chaen-ai-lab</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch10" value="@airevolutionx" onchange="updateChannelList()">
+                        <label for="ch10">airevolutionx</label>
+                    </div>
+                    <div class="channel-checkbox" onclick="toggleChannel(this)">
+                        <input type="checkbox" id="ch11" value="@pivot00" onchange="updateChannelList()">
+                        <label for="ch11">pivot00</label>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="channelId">YouTubeチャンネルID</label>
+                <label for="channelId">選択されたチャンネル</label>
                 <div class="input-wrapper">
-                    <input type="text" id="channelId" class="form-control" 
-                           placeholder="例: @username または UCxxxxxxxxxxxxxxxxxxxxxx"
-                           value="@ai_masaou">
+                    <textarea id="channelId" class="form-control" 
+                           placeholder="上のチェックボックスから選択するか、直接入力してください（複数の場合は改行で区切り）"
+                           rows="3"></textarea>
                 </div>
                 <div class="help-text">
-                    上のボタンから選択するか、直接入力してください
+                    複数チャンネルを検索する場合は改行で区切ってください
                 </div>
             </div>
             
@@ -417,23 +488,54 @@
         const API_KEY = 'AIzaSyCCHRKGJi8aHUu6x_2RJNGa07w1BNJTk-U';
         let allVideos = [];
 
-        function selectChannel(channelHandle, buttonElement) {
-            document.getElementById('channelId').value = channelHandle;
+        function toggleChannel(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
             
-            // ボタンの選択状態を更新
-            document.querySelectorAll('.preset-btn').forEach(btn => {
-                btn.classList.remove('selected');
+            // クリックがチェックボックス自体でない場合のみトグル
+            if (event.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+            }
+            
+            // 見た目を更新
+            if (checkbox.checked) {
+                element.classList.add('checked');
+            } else {
+                element.classList.remove('checked');
+            }
+            
+            updateChannelList();
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.channel-checkbox input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+                const parent = checkbox.closest('.channel-checkbox');
+                if (checkbox.checked) {
+                    parent.classList.add('checked');
+                } else {
+                    parent.classList.remove('checked');
+                }
             });
-            buttonElement.classList.add('selected');
+            
+            updateChannelList();
+        }
+
+        function updateChannelList() {
+            const checkboxes = document.querySelectorAll('.channel-checkbox input[type="checkbox"]:checked');
+            const selectedChannels = Array.from(checkboxes).map(cb => cb.value);
+            document.getElementById('channelId').value = selectedChannels.join('\n');
         }
 
         async function searchVideos() {
-            const channelId = document.getElementById('channelId').value.trim();
+            const channelInput = document.getElementById('channelId').value.trim();
             const keyword = document.getElementById('keyword').value.trim();
             const maxResults = document.getElementById('maxResults').value;
             
-            if (!channelId) {
-                alert('チャンネルIDを入力してください');
+            if (!channelInput) {
+                alert('チャンネルを選択してください');
                 return;
             }
             
@@ -446,16 +548,25 @@
             hideResults();
             
             try {
-                let finalChannelId = channelId;
-                if (channelId.startsWith('@')) {
-                    finalChannelId = await getChannelIdFromHandle(channelId);
+                const channelIds = channelInput.split('\n').filter(id => id.trim());
+                let allVideos = [];
+                
+                // 各チャンネルから動画を取得
+                for (const channelId of channelIds) {
+                    let finalChannelId = channelId.trim();
+                    if (finalChannelId.startsWith('@')) {
+                        finalChannelId = await getChannelIdFromHandle(finalChannelId);
+                    }
+                    
+                    const videos = await fetchChannelVideos(finalChannelId, maxResults);
+                    allVideos = allVideos.concat(videos);
                 }
                 
-                const videos = await fetchChannelVideos(finalChannelId, maxResults);
-                const filteredVideos = filterVideosByKeyword(videos, keyword);
+                // 日付順でソート（新しい順）
+                allVideos.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
                 
-                allVideos = filteredVideos;
-                displayResults(filteredVideos, keyword);
+                const filteredVideos = filterVideosByKeyword(allVideos, keyword);
+                displayResults(filteredVideos, keyword, channelIds.length);
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -506,7 +617,7 @@
             });
         }
 
-        function displayResults(videos, keyword) {
+        function displayResults(videos, keyword, channelCount = 1) {
             const resultsDiv = document.getElementById('results');
             const videoGrid = document.getElementById('videoGrid');
             const resultsCount = document.getElementById('resultsCount');
@@ -518,12 +629,14 @@
                 return;
             }
             
-            resultsCount.textContent = `"${keyword}" に関連する動画 ${videos.length}件が見つかりました`;
+            const channelText = channelCount > 1 ? `${channelCount}個のチャンネル` : 'チャンネル';
+            resultsCount.textContent = `${channelText}から "${keyword}" に関連する動画 ${videos.length}件が見つかりました`;
             
             videoGrid.innerHTML = videos.map(video => {
                 const publishedDate = new Date(video.snippet.publishedAt).toLocaleDateString('ja-JP');
                 const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
                 const thumbnailUrl = video.snippet.thumbnails.medium.url;
+                const channelTitle = video.snippet.channelTitle;
                 
                 return `
                     <div class="video-card" onclick="window.open('${videoUrl}', '_blank')">
@@ -537,6 +650,7 @@
                             <div class="video-title">${video.snippet.title}</div>
                             <div class="video-meta">
                                 <span class="video-date">${publishedDate}</span>
+                                <span class="channel-name">${channelTitle}</span>
                             </div>
                         </div>
                     </div>
@@ -579,9 +693,12 @@
 
         // 初期化時にデフォルトチャンネルを選択状態にする
         window.addEventListener('load', function() {
-            const firstBtn = document.querySelector('.preset-btn');
-            if (firstBtn) {
-                firstBtn.classList.add('selected');
+            // デフォルトで最初のチャンネルを選択
+            const firstCheckbox = document.getElementById('ch1');
+            if (firstCheckbox) {
+                firstCheckbox.checked = true;
+                firstCheckbox.closest('.channel-checkbox').classList.add('checked');
+                updateChannelList();
             }
         });
 

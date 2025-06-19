@@ -465,10 +465,12 @@
             </div>
             
             <div class="form-group">
-                <label for="keyword">検索キーワード</label>
+                <label for="keyword">検索キーワード（空白の場合は最新動画を表示）</label>
                 <input type="text" id="keyword" class="form-control" 
-                       placeholder="例: AI, 人工知能, ChatGPT"
-                       value="AI">
+                       placeholder="例: AI, 人工知能, ChatGPT（空白の場合は最新動画一覧を表示）">
+                <div class="help-text">
+                    キーワードを入力すると該当する動画のみ表示されます。空白の場合は選択したチャンネルの最新動画をすべて表示します。
+                </div>
             </div>
             
             <div class="form-group">
@@ -550,10 +552,6 @@
                 alert('チャンネルを選択してください');
                 return;
             }
-            if (!keyword) {
-                alert('検索キーワードを入力してください');
-                return;
-            }
             
             showLoading();
             hideResults();
@@ -572,8 +570,13 @@
                 }
                 
                 allVideos.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
-                const filteredVideos = filterVideosByKeyword(allVideos, keyword);
-                displayResults(filteredVideos, keyword, channelIds.length);
+                
+                let displayVideos = allVideos;
+                if (keyword) {
+                    displayVideos = filterVideosByKeyword(allVideos, keyword);
+                }
+                
+                displayResults(displayVideos, keyword, channelIds.length);
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -628,7 +631,12 @@
             }
             
             const channelText = channelCount > 1 ? `${channelCount}個のチャンネル` : 'チャンネル';
-            resultsCount.textContent = `${channelText}から "${keyword}" に関連する動画 ${videos.length}件が見つかりました`;
+            
+            if (keyword) {
+                resultsCount.textContent = `${channelText}から "${keyword}" に関連する動画 ${videos.length}件が見つかりました`;
+            } else {
+                resultsCount.textContent = `${channelText}の最新動画 ${videos.length}件を表示しています`;
+            }
             
             videoGrid.innerHTML = videos.map(video => {
                 const publishedDate = new Date(video.snippet.publishedAt).toLocaleDateString('ja-JP');

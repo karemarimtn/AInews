@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
-            background: url('https://github.com/karemarimtn/AInews/blob/main/image1.png') center/cover fixed,
+            background: url('https://raw.githubusercontent.com/karemarimtn/AInews/main/image1.png') center/cover fixed,
                         linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
             min-height: 100vh;
             padding: 20px;
@@ -85,21 +85,6 @@
             z-index: 2;
             font-weight: 500;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .header::after {
-            content: '🎬✨🔍';
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 1.5rem;
-            opacity: 0.7;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
         }
 
         .search-section {
